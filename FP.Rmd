@@ -40,19 +40,35 @@ theme_set(theme_minimal())
 
 ```{r}
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-df2010<-read.dta13('data/data_2010.dta')
-df2014<-read.dta13('data/data_2014.dta')
+df2010<-read.dta13('data/data_2010.dta',
+                   missing.type = T,
+                   nonint.factors = T,
+                   generate.factors = T) %>%
+  mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+  mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+  mutate_each(funs(replace(., . == "Unknown", NA))) 
+
+df2014<-read.dta13('data/data_2014.dta',
+                   missing.type = T,
+                   nonint.factors = T,
+                   generate.factors = T) %>%
+  mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+  mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+  mutate_each(funs(replace(., . == "Unknown", NA)))
+
 
 # dat <- smartbind(df2010, df2014)
 
 joined <- df2010 %>%
-  left_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
+  inner_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
 ```
 
 
 ```{r}
 joined <- joined %>% 
-  mutate(income_diff = income_2014 - income_2010)
+  mutate(income_diff = income_2014 - income_2010) %>%
+  
+  
 
 
 ```
