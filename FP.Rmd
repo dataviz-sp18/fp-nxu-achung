@@ -1,0 +1,25 @@
+---
+title: "FP"
+author: "Alice Mee Seon Chung"
+date: "5/24/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(foreign)
+library(readstata13)
+library(stargazer)
+library(lmtest)
+library(coefplot)
+setwd("~/Desktop/2018SPRING/DV/FP")
+df2010<-read.dta13('CFPS/data_2010.dta')
+df2014<-read.dta13('CFPS/data_2014.dta')
+lm1<-lm(income~.-pid-fid-cid-provcd-countyid-hukou-inc_lastyr-highest_educ_degree_2010-educ2010-stage_educ2010
+        ,data=df2010)
+summary(lm1)
+ss
+stargazer(ss$coefficients, type = 'text')
+coefplot(lm1)
+```
+
