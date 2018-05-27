@@ -40,10 +40,8 @@ theme_set(theme_minimal())
 
 ```{r}
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-df2010<-read.dta13('data/data_2010.dta') %>%
-  mutate(year = 2010)
-df2014<-read.dta13('data/data_2014.dta') %>%
-  mutate(year = 2014)
+df2010<-read.dta13('data/data_2010.dta')
+df2014<-read.dta13('data/data_2014.dta')
 
 # dat <- smartbind(df2010, df2014)
 
@@ -55,7 +53,8 @@ joined <- df2010 %>%
 ```{r}
 joined <- joined %>% 
   mutate(income_diff = income_2014 - income_2010)
-  
+
+
 ```
 
 
