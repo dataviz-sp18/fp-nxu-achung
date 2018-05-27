@@ -6,20 +6,47 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message = FALSE,
+                      warning = FALSE,
+                      echo = FALSE,
+                      cache = T)
+library(tidyverse)
+library(knitr)
+library(broom)
+library(stringr)
+library(modelr)
+library(forcats)
+library(tidytext)
+library(wordcloud)
+library(scales)
+library(rtweet)
+library(tm)
+library(SnowballC)
+library(RColorBrewer)
+library(ggmap)
+library(reshape2)
+library(maps)
 library(foreign)
 library(readstata13)
 library(stargazer)
 library(lmtest)
 library(coefplot)
-setwd("~/Desktop/2018SPRING/DV/FP")
-df2010<-read.dta13('CFPS/data_2010.dta')
-df2014<-read.dta13('CFPS/data_2014.dta')
-lm1<-lm(income~.-pid-fid-cid-provcd-countyid-hukou-inc_lastyr-highest_educ_degree_2010-educ2010-stage_educ2010
-        ,data=df2010)
-summary(lm1)
-ss
-stargazer(ss$coefficients, type = 'text')
-coefplot(lm1)
+library(gtools)
+
+options(digits = 3)
+set.seed(1234)
+theme_set(theme_minimal())
+```
+
+```{r}
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+df2010<-read.dta13('data/data_2010.dta') %>%
+  mutate(year = 2010)
+df2014<-read.dta13('data/data_2014.dta') %>%
+  mutate(year = 2014)
+
+dat <- smartbind(df2010, df2014)
+
+incdat %>% 
 ```
 
