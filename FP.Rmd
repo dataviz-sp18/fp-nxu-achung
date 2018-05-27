@@ -45,8 +45,30 @@ df2010<-read.dta13('data/data_2010.dta') %>%
 df2014<-read.dta13('data/data_2014.dta') %>%
   mutate(year = 2014)
 
-dat <- smartbind(df2010, df2014)
+# dat <- smartbind(df2010, df2014)
 
-incdat %>% 
+joined <- df2010 %>%
+  left_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
 ```
+
+
+```{r}
+joined <- joined %>% 
+  mutate(income_diff = income_2014 - income_2010)
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
