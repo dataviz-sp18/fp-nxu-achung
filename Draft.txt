@@ -1,0 +1,13 @@
+Introduction an explanation of the problem/research question and the motivation for solving it.
+
+(Background) Since China has been one of key players of world economy, many studies have been conducted on the economic development and income level of China. The income level of people directly related with the economic power so it is important to know the prediction on how this income level will change in the future at various level like local, community, family and individual. In this project, our goal is to study the relationship of parents’ income and child’s income. It is commonly believed that the socioeconomic backgrounds of parents have large impact on the academic performance, job status and education of children. To extent the existed findings, we proposed the research question on how parents’ income influences child’s income in China. 
+
+Our main data source is China Family Panel Studies (CFPS) which is the first large-scale academically oriented longitudinal survey data in China, and the data is from 2010 to 2014 with 2-year intervals. This data is based on the survey with questions about Chinese family and society. This dataset has 33,600 observations with 1,484 variables in 2010 and 35,719 observations with 1,744 variables in 2012. After cleaning the missing variables and selecting the interested variables, we have 33,018 observations with 128 variables in 2010.  We focus on the few variables, personal income, highest level of education attained, high school diploma, hours worked in last year, gender, province, and the information of living area (urban or rural), years of education in 2010, stage of education in 2010, and few variables related with community characteristics to calculate. Using these variables, we can measure gender ratio and mean of income by province and further by the information of living area within province. 
+
+
+Methods- a detailed explanation of the visualization techniques you employed to solve the problem/answer the question.
+Model
+Variables
+Visualization techniques
+
+Results/Discussion- what has the audience learned from your work? How is the visualization truthful, functional, beautiful, insightful, and/or enlightening?
