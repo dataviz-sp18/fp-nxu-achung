@@ -10,12 +10,32 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message = FALSE,
+                      warning = FALSE,
+                      echo = FALSE,
+                      cache = T)
+library(tidyverse)
+library(knitr)
+library(broom)
+library(stringr)
+library(modelr)
+library(forcats)
+library(tidytext)
+library(wordcloud)
+library(scales)
+library(rtweet)
+library(tm)
+library(SnowballC)
+library(RColorBrewer)
+library(ggmap)
+library(reshape2)
+library(maps)
 library(foreign)
 library(readstata13)
 library(stargazer)
 library(lmtest)
 library(coefplot)
+<<<<<<< HEAD
 library(tidyverse)
 library(knitr)
 library(broom)
@@ -45,6 +65,17 @@ set.seed(1234)
 theme_set(theme_minimal())
 setwd("~/Desktop/2018SPRING/DV/fp-nxu-achung/")
 
+=======
+library(gtools)
+
+options(digits = 3)
+set.seed(1234)
+theme_set(theme_minimal())
+```
+
+```{r}
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+>>>>>>> 44665b6c6e3770df381710d0d69aac5fd8aa1253
 df2010<-read.dta13('data/data_2010.dta',
                    missing.type = T,
                    nonint.factors = T,
@@ -60,6 +91,7 @@ df2014<-read.dta13('data/data_2014.dta',
   mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
   mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
   mutate_each(funs(replace(., . == "Unknown", NA)))
+<<<<<<< HEAD
 ```
 ```{r, echo=FALSE}
 joined <- df2010 %>%
@@ -284,3 +316,111 @@ coefplot(lm2)
 ```
 
 
+=======
+
+
+# dat <- smartbind(df2010, df2014)
+
+dat <- df2010 %>%
+  inner_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
+```
+
+
+```{r}
+joined <- dat %>% 
+  mutate(income_2014 = as.numeric(income_2014),
+         income_2010 = as.numeric(income_2010),
+         income_diff = income_2014 - income_2010) %>%
+  mutate(
+    convenience_diff = as.numeric(ca301_a_1_2014) - as.numeric(ca301_a_1_2010),
+    kindergarten_diff = as.numeric(ca301_a_2_2014) - as.numeric(ca301_a_2_2010),
+    primsch_diff = as.numeric(ca301_a_3_2014) - as.numeric(ca301_a_3_2010),
+    hospital_diff = as.numeric(ca301_a_4_2014) - as.numeric(ca301_a_4_2010),
+    drugstore_diff = as.numeric(ca301_a_5_2014) - as.numeric(ca301_a_5_2010),
+    temple_diff = as.numeric(ca301_a_6_2014) - as.numeric(ca301_a_6_2010),
+    ancestral_diff = as.numeric(ca301_a_7_2014) - as.numeric(ca301_a_7_2010),
+    church_diff = as.numeric(ca301_a_8_2014) - as.numeric(ca301_a_8_2010),
+    actvty_diff = as.numeric(ca301_a_9_2014) - as.numeric(ca301_a_9_2010),
+    nursing_diff = as.numeric(ca301_a_10_2014) - as.numeric(ca301_a_10_2010),
+    physfacty_diff = as.numeric(ca301_a_11_2014) - as.numeric(ca301_a_11_2010),
+    playgrd_diff = as.numeric(ca301_a_12_2014) - as.numeric(ca301_a_12_2010),
+    letterbox_diff = as.numeric(ca301_a_14_2014) - as.numeric(ca301_a_14_2010),
+    comm_website = as.numeric(ca301_a_15_2014) - as.numeric(ca301_a_15_2010),
+    areasize_2010 = as.numeric(ca4r_2010),
+    areasize_2014 = as.numeric(ca4r_2014),
+    watersource_change = ifelse(ca5_2014 == ca5_2010, 1, 0),
+    cooking_change = ifelse(ca6_2014 == ca6_2010, 1, 0),
+    pop_change = as.numeric(cb2_2014) - as.numeric(cb2_2010),
+    elec_access_change = 1,
+    cableradio_access_change = 1,
+    cabletv_access_change = 1,
+    postal_access_change = 1,
+    tele_access_change = 1,
+    cell_access_change = 1,
+    road_access_change = 1,
+    rail_access_change = 1,
+    tap_access_change = 1,
+    gas_access_change = 1,
+    localenterprise_access_change = 1,
+    commelect_access_change = 1,
+    transit_access_change = 1,
+    bus_access_change = 1,
+    subway_access_change = 1,
+    
+    elec_access_2014 = 1,
+    cableradio_access_2014 = 1,
+    cabletv_access_2014 = 1,
+    postal_access_2014 = 1,
+    tele_access_2014 = 1,
+    cell_access_2014 = 1,
+    road_access_2014 = 1,
+    rail_access_2014 = 1,
+    tap_access_2014 = 1,
+    gas_access_2014 = 1,
+    localenterprise_access_2014 = 1,
+    commelect_access_2014 = 1,
+    transit_access_2014 = 1,
+    bus_access_2014 = 1,
+    subway_access_2014 = 1,
+    elec_access_2010 = ifelse(as.numeric(ca301_a_1_change)<2010 & as.numeric(ca301_a_1_change) >0, 1, 0),
+    cableradio_access_2010 = ifelse(as.numeric(ca301_a_2_change)<2010 & as.numeric(ca301_a_2_change) >0, 1, 0),
+    cabletv_access_2010 = ifelse(as.numeric(ca301_a_3_change)<2010 & as.numeric(ca301_a_3_change) >0, 1, 0),
+    postal_access_2010 = ifelse(as.numeric(ca301_a_4_change)<2010 & as.numeric(ca301_a_4_change) >0, 1, 0),
+    tele_access_2010 = ifelse(as.numeric(ca301_a_5_change)<2010 & as.numeric(ca301_a_5_change) >0, 1, 0),
+    cell_access_2010 = ifelse(as.numeric(ca301_a_6_change)<2010 & as.numeric(ca301_a_6_change) >0, 1, 0),
+    road_access_2010 = ifelse(as.numeric(ca301_a_7_change)<2010 & as.numeric(ca301_a_7_change) >0, 1, 0),
+    rail_access_2010 = ifelse(as.numeric(ca301_a_8_change)<2010 & as.numeric(ca301_a_8_change) >0, 1, 0),
+    tap_access_2010 = ifelse(as.numeric(ca301_a_9_change)<2010 & as.numeric(ca301_a_9_change) >0, 1, 0),
+    gas_access_2010 = ifelse(as.numeric(ca301_a_10_change)<2010 & as.numeric(ca301_a_10_change) >0, 1, 0),
+    localenterprise_access_2010 = ifelse(as.numeric(ca301_a_11_change)<2010 & as.numeric(ca301_a_11_change) >0, 1, 0),
+    commelect_access_2010 = ifelse(as.numeric(ca301_a_12_change)<2010 & as.numeric(ca301_a_12_change) >0, 1, 0),
+    transit_access_2010 = ifelse(as.numeric(ca301_a_13_change)<2010 & as.numeric(ca301_a_13_change) >0, 1, 0),
+    bus_access_2010 = ifelse(as.numeric(ca301_a_14_change)<2010 & as.numeric(ca301_a_14_change) >0, 1, 0),
+    subway_access_2010 = ifelse(as.numeric(ca301_a_15_change)<2010 & as.numeric(ca301_a_15_change) >0, 1, 0),
+    dist_committe_nearesttown_change = as.numeric(cg1_2014) - as.numeric(cg1_2010),
+    dist_committe_countycap_change = as.numeric(cg2_2014) - as.numeric(cg2_2010),
+    dist_committe_provcap_change = as.numeric(cg3_2014) - as.numeric(cg3_2010),
+    whether_mine_change = as.numeric(cg4_2014) - as.numeric(cg4_2010),
+    agri_gdp_change = as.numeric(ch3_2014) - as.numeric(ch3_2010),
+    nonagri_gdp_change = as.numeric(ch4_2014) - as.numeric(ch4_2010),
+    income_percap_change = as.numeric(ch5_2014) - as.numeric(ch5_2010))
+  
+joined <- joined[!is.na(joined$income_diff) & !is.na(joined$provcd_2014) & !is.na(joined$urban_2014), ]
+lm <- income_diff ~  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 44665b6c6e3770df381710d0d69aac5fd8aa1253
