@@ -1,0 +1,110 @@
+---
+title: "Untitled"
+author: "Alice Mee Seon Chung"
+date: "5/27/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+setwd("~/Desktop/2018SPRING/DV/fp-nxu-achung/")
+
+df2010<-read.dta13('data/data_2010.dta',
+missing.type = T,
+nonint.factors = T,
+generate.factors = T) %>%
+mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+mutate_each(funs(replace(., . == "Unknown", NA)))
+
+df2014<-read.dta13('data/data_2014.dta',
+missing.type = T,
+nonint.factors = T,
+generate.factors = T) %>%
+mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+mutate_each(funs(replace(., . == "Unknown", NA)))
+```
+```{r}
+joined <- df2010 %>%
+inner_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
+
+
+
+joined <- joined %>%
+mutate(income_diff = income_2014 - income_2010)%>%
+mutate(provcd_2010=as.character(joined$provcd_2010),
+provcd_2014=as.character(joined$provcd_2014))%>%
+mutate(provcd_2010=replace(as.character(joined$provcd_2010),
+joined$provcd_2010 == "Guangxi Zhuang Autonomous Region",
+"Guangxi"),
+provcd_2014=replace(as.character(joined$provcd_2014),
+joined$provcd_2014 == "Guangxi Zhuang Autonomous Region",
+"Guangxi"),
+provcd_2014=replace(as.character(joined$provcd_2014),
+provcd_2014=replace(as.character(joined$provcd_2014),
+joined$provcd_2014 =="Xinjiang Uygur Autonomous Region",
+"Xinjiang")))
+
+joined1<-joined%>%
+filter(!is.na(joined$income_2014)&!is.na(joined$income_2010)
+&!is.na(joined$provcd_2010)&!is.na(joined$provcd_2014)
+&!is.na(joined$urban_2010)&!is.na(joined$urban_2014))%>%
+mutate(gender_10 = case_when(gender_2010 =="Male" ~ 1,
+gender_2010 == "Female_(0)"  ~ 0,
+gender_2010 =="Female_(5)" ~ 0,
+TRUE ~ 5), gender_14=case_when(gender_2014 =="Male" ~ 1,
+gender_2014 == "Female_(0)"  ~ 0,
+gender_2014 =="Female_(5)" ~ 0,
+TRUE ~ 5))%>%
+mutate(income_2010=as.numeric(income_2010), income_2014=as.numeric(income_2014),
+gender_2010=as.numeric(gender_2010), gender_2014=as.numeric(gender_2014))
+
+joined_10_prov<-joined1%>%
+group_by(provcd_2010)%>%
+summarise(mean_income = mean(income_2010),
+m = sum(gender_10==1), f = sum(gender_10==0),
+r = sum(gender_10==1)/sum(gender_10==0),
+count=n(), year = 2010)%>%
+as.data.frame()
+
+joined_14_prov<-joined1%>%
+group_by(provcd_2014)%>%
+summarise(mean_income = mean(income_2014),
+m = sum(gender_14==1), f = sum(gender_14==0),
+r = sum(gender_14==1)/sum(gender_14==0),
+count=n(), year = 2014)%>%
+as.data.frame()
+
+colnames(joined_10_prov)[1]<-'provcd'
+colnames(joined_14_prov)[1]<-'provcd'
+merged<-left_join(joined_10_prov, joined_14_prov, by='provcd')
+merged$diffincome<-merged$mean_income.y-merged$mean_income.x
+
+joined_10_rural<-joined1%>%
+group_by(provcd_2010, urban_2010)%>%
+summarise(mean_income = mean(income_2010),
+m = sum(gender_10==1), f = sum(gender_10==0),
+r = sum(gender_10==1)/sum(gender_10==0),
+count=n(), year = 2010)%>%
+as.data.frame()
+
+joined_14_rural<-joined1%>%
+group_by(provcd_2014, urban_2014)%>%
+summarise(mean_income = mean(income_2014),
+m = sum(gender_14==1), f = sum(gender_14==0),
+r = sum(gender_14==1)/sum(gender_14==0),
+count=n(), year = 2014)%>%
+as.data.frame()
+
+colnames(joined_10_rural)[1]<-'provcd'
+colnames(joined_14_rural)[1]<-'provcd'
+colnames(joined_10_rural)[2]<-'urban'
+colnames(joined_14_rural)[2]<-'urban'
+
+merged_rural<-inner_join(joined_10_rural, joined_14_rural, by=c('provcd','urban'))
+merged_rural$diffincome<-merged_rural$mean_income.y-merged_rural$mean_income.x
+merged_rural
+```
