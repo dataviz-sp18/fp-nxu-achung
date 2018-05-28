@@ -25,12 +25,14 @@ set.seed(1234)
 options(scipen=999)
 theme_set(theme_minimal())
 load("data.RData")
-
 ```
 
 Introduction
 =====================================  
 
+Since China has been one of key players of world economy, many studies have been conducted on the economic development and income level of China. The income level of people directly related with the economic power so it is important to know the prediction on how this income level will change in the future at various level like local, community, family and individual. In this project, our goal is to study what factors impact on the level of individual income in China. It is commonly believed that the socioeconomic backgrounds and characterestisc of residential community have large impact on the income level of individual. To extent the existed findings, we proposed the research question on what factors impact on the income level of individuals and how these factors related with the income level of individuals in China. 
+
+Our main data source is China Family Panel Studies (CFPS) which is the first large-scale academically oriented longitudinal survey data in China, and the data is from 2010 to 2014 with 2-year intervals. This data is based on the survey with questions about Chinese family and society. This dataset has 33,018 observations with 1,484 variables in 2010 and 37,147 observations with 1,191 variables in 2014. After cleaning the missing variables and selecting the interested variables and merging two data by personal id, we finally have sample data which has 12,237 observations with 202 variables. We focus on the important variables associated with individual level such as personal income, age, gender, years of education and other variables related with community characteristics such as the number of convenience stores, the number of promary schools, the number of hospitals, water source, community population, travel time to nearest town, travel time to county seat, agricultural GDP, non-agricultural GDP and income per capita. Using these variables, we can measure the income level of individuals by each province and further conduct the relationship between the charatertistics of individuals and the income level as well as between the characteristics of residential community and the income level of individuals. 
 
 Income vs. GDP
 =====================================  
@@ -115,27 +117,6 @@ renderPlotly(
 Income Gain: 2010 - 2014
 ==========================================================================
 
-```{r, eval=FALSE, include=FALSE}
-p2<-ggplot(china.all.df, aes(x=long, y=lat, map_id = provcd))+
-        geom_polygon(aes(fill=ch$diffincome, group = provcd), ) +
-        scale_fill_gradient(low="white", high="red", name="Difference of mean income\n")+
-        geom_path(color="gray", size=0.3) +
-        coord_fixed(ratio = 1)+
-        expand_limits(x = china.all.df$long, y = china.all.df$lat) +
-        theme(axis.line=element_blank(),
-              axis.text.x=element_blank(),
-              axis.text.y=element_blank(),
-              axis.ticks=element_blank(),
-              axis.title.x=element_blank(),
-              axis.title.y=element_blank(),
-              panel.background=element_blank(),
-              panel.border=element_blank(),
-              panel.grid.major=element_blank(),
-              panel.grid.minor=element_blank(),
-              plot.background=element_blank())
-```
-
-
 Row {data-width=800}
 --------------------------------------------------
 
@@ -143,7 +124,7 @@ Row {data-width=800}
 ```{r, echo=FALSE, fig.height= 8, fig.width=12}
 renderPlotly(p2<-ggplot(china.all.df, aes(x=long, y=lat, map_id = provcd))+
         geom_polygon(aes(fill=ch$diffincome )) +
-        scale_fill_gradient(low="white", high="red", name="Difference of Mean Income \n between 2014 and 2010")+
+        scale_fill_gradient(low="white", high="#00BFC4", name="Difference of Mean Income \n between 2014 and 2010")+
         geom_path(color="black", size=0.3) +
         coord_fixed(ratio = 1)+
         expand_limits(x = china.all.df$long, y = china.all.df$lat) +
