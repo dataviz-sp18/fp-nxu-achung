@@ -161,8 +161,6 @@ Input {.sidebar}
 ---------------------------------------------------
 
 ```{r 3, echo=FALSE}
-#selectizeInput('type', label = "Select Catetory",
-#            choices = c("By Province","By Rural/Urban"), selected = "By Province")
 selectizeInput('year', label = "Select Year",
             choices = c(2010,2014), selected = 2010)
 selectizeInput('province', label = "Select Province",
@@ -308,7 +306,7 @@ china.all.df$provcd<-tolower(china.all.df$provcd)
 ```{r, eval=FALSE, include=FALSE}
 p2<-ggplot(china.all.df, aes(x=long, y=lat, map_id = provcd))+
         geom_polygon(aes(fill=ch$diffincome )) +
-        scale_fill_gradient(low="white", high="red", name="Absolute Difference \n")+
+        scale_fill_gradient(low="white", high="red", name="Difference of mean income\n")+
         geom_path(color="gray", size=0.3) +
         coord_fixed(ratio = 1)+
         expand_limits(x = china.all.df$long, y = china.all.df$lat) +
@@ -333,7 +331,7 @@ Row {data-width=800}
 ```{r, echo=FALSE, fig.height= 8, fig.width=12}
 renderPlotly(p2<-ggplot(china.all.df, aes(x=long, y=lat, map_id = provcd))+
         geom_polygon(aes(fill=ch$diffincome )) +
-        scale_fill_gradient(low="white", high="red", name="Absolute Difference \n")+
+        scale_fill_gradient(low="white", high="red", name="Difference of Mean Income \n")+
         geom_path(color="gray", size=0.3) +
         coord_fixed(ratio = 1)+
         expand_limits(x = china.all.df$long, y = china.all.df$lat) +
