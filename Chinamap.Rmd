@@ -1,0 +1,96 @@
+---
+title: "chinamap"
+author: "Alice Mee Seon Chung"
+date: "5/27/2018"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: rows
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, include=FALSE}
+library(rgdal)  
+library(ggplot2)
+library(maptools)
+library(plyr)
+library(plotly)
+library(shiny)
+library(flexdashboard)
+library(dplyr)
+packageVersion('plotly')
+set.seed(1)
+options(scipen=999)
+
+#library(svglite)
+cnmap <- readShapePoly("../ggplot2-china-map/china_shapefile/bou2_4p.shp")
+#class(cnmap)
+cn_prov_name <- na.omit(unique(cnmap$NAME))
+en_prov_name <- c("Heilongjiang", "Inner Mongolia", "Xinjiang", "Jilin",
+                  "Liaoning", "Gansu", "Hebei", "Beijing", "Shanxi",
+                  "Tianjin", "Shaanxi", "Ningxia", "Qinghai", "Shandong",
+                  "Tibet", "Henan", "Jiangsu", "Anhui", "Sichuan", "Hubei",
+                  "Chongqing", "Shanghai", "Zhejiang", "Hunan", "Jiangxi",
+                  "Yunan", "Guizhou", "Fujian", "Guangxi", "Taiwan", 
+                  "Guangdong", "Hong Kong", "Hainan")
+
+prov_name <- data.frame(cn_prov_name, en_prov_name)
+colnames(prov_name)<-c('NAME','provcd')
+
+# First read in the shapefile
+china = readOGR(dsn=("../fp-nxu-achung/ggplot2-china-map/china_shapefile/"), layer="bou2_4p")
+merged = read.csv('../fp-nxu-achung/merged.csv')
+# Clean the data, then fortify to a df
+china@data$id = rownames(china@data)
+china.points = fortify(china, region="id")
+china.df = join(china.points, china@data, by="id")
+
+# Dont draw the islands in south china sea
+china.df = subset(china.df, AREA > 0.005)
+
+china.all.df<-left_join(china.df, prov_name, by = 'NAME')
+
+ch<-left_join(china.all.df, merged, by = 'provcd')
+
+ch$abs<-abs(ch$diffincome)
+ch$provcd <- tolower(ch$provcd)
+china.all.df$provcd<-tolower(china.all.df$provcd)
+
+p2<-ggplot(china.all.df, aes(x=long, y=lat, map_id = provcd))+
+        geom_polygon(aes(fill=ch$diffincome, )) +
+        scale_fill_gradient(low="white", high="red", name="Absolute Difference \n")+
+        geom_path(color="gray", size=0.3) +
+        #coord_map()+
+        coord_fixed(ratio = 1)+
+        expand_limits(x = china.all.df$long, y = china.all.df$lat) +
+        theme(axis.line=element_blank(),
+              axis.text.x=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks=element_blank(),
+              axis.title.x=element_blank(),
+              axis.title.y=element_blank(),
+              panel.background=element_blank(),
+              panel.border=element_blank(),
+              panel.grid.major=element_blank(),
+              panel.grid.minor=element_blank(),
+              plot.background=element_blank())
+
+#p2
+
+ggsave("../FP/plot12.png", plot = p2, device = "png",
+        scale = 1, width = 9, height = 9, units = "in", dpi = 300)
+
+```
+
+
+Row {data-width=800}
+--------------------------------------------------
+
+### Result
+```{r, echo=FALSE, fig.height= 8, fig.width=12}
+renderPlotly(p2)
+```

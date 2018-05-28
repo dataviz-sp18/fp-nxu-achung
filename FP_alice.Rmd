@@ -1,0 +1,361 @@
+---
+title: "Untitled"
+author: "Alice Mee Seon Chung"
+date: "5/27/2018"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: rows
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(knitr)
+library(broom)
+library(stringr)
+library(modelr)
+library(forcats)
+library(tidytext)
+library(wordcloud)
+library(scales)
+library(tm)
+library(RColorBrewer)
+library(reshape2)
+library(foreign)
+library(readstata13)
+library(stargazer)
+library(lmtest)
+library(coefplot)
+library(gtools)
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(plotly)
+library(shiny)
+library(flexdashboard)
+library(rgdal)  
+library(maptools)
+library(ggplot2)
+library(maptools)
+library(plyr)
+library(dplyr)
+packageVersion('plotly')
+set.seed(1)
+options(scipen=999)
+load("data.RData")
+```
+
+Mean of Income and GDP Gap by Year
+=======================================================================
+
+```{r 1, include=FALSE, eval=FALSE}
+setwd("~/Desktop/2018SPRING/DV/fp-nxu-achung/")
+gdp<-read.csv('china_gdp_2014.csv')
+colnames(gdp)[1]<-'provcd'
+gdp10<-read.csv('china_gdp_2010.csv')
+colnames(gdp10)[1]<-'provcd'
+df2010<-read.dta13('data/data_2010.dta',
+                   missing.type = T,
+                   nonint.factors = T,
+                   generate.factors = T) %>%
+  mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+  mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+  mutate_each(funs(replace(., . == "Unknown", NA))) 
+
+df2014<-read.dta13('data/data_2014.dta',
+                   missing.type = T,
+                   nonint.factors = T,
+                   generate.factors = T) %>%
+  mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+  mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+  mutate_each(funs(replace(., . == "Unknown", NA)))
+```
+```{r 2, include=FALSE, eval=FALSE}
+joined <- df2010 %>%
+inner_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
+
+joined11 <- joined %>%
+  mutate(income_diff = income_2014 - income_2010)%>%
+  mutate(provcd_2010=as.character(joined$provcd_2010),
+       provcd_2014=as.character(joined$provcd_2014))%>%
+  mutate(income_2010=as.character(income_2010),
+         income_2014=as.character(income_2014))%>%
+  mutate(income_2010=as.numeric(income_2010),
+         income_2014=as.numeric(income_2014))%>%
+  mutate(provcd_2010=replace(as.character(joined$provcd_2010),
+                             joined$provcd_2010 == "Guangxi Zhuang Autonomous Region","Guangxi"))%>%
+  mutate(provcd_2014=replace(as.character(joined$provcd_2014), 
+                             joined$provcd_2014 =="Xinjiang Uygur Autonomous Region", "Xinjiang"))
+
+joined12<-joined11%>%
+  mutate(provcd_2014=replace(as.character(joined$provcd_2014),
+                             joined$provcd_2014 =="Guangxi Zhuang Autonomous Region", "Guangxi"))
+
+joined1<-joined12%>%
+filter(!is.na(joined$income_2014)&!is.na(joined$income_2010)
+&!is.na(joined$provcd_2010)&!is.na(joined$provcd_2014)
+&!is.na(joined$urban_2010)&!is.na(joined$urban_2014))%>%
+mutate(gender_10 = case_when(gender_2010 =="Male" ~ 1,
+gender_2010 == "Female_(0)"  ~ 0,
+gender_2010 =="Female_(5)" ~ 0,
+TRUE ~ 5), gender_14=case_when(gender_2014 =="Male" ~ 1,
+gender_2014 == "Female_(0)"  ~ 0,
+gender_2014 =="Female_(5)" ~ 0,
+TRUE ~ 5))%>%
+mutate(gender_2010=as.numeric(gender_2010), gender_2014=as.numeric(gender_2014))
+
+### Province 
+joined_10_prov<-joined1%>%
+group_by(provcd_2010)%>%
+summarise(mean_income = mean(income_2010),
+m = sum(gender_10==1), f = sum(gender_10==0),
+r = sum(gender_10==1)/sum(gender_10==0),
+count=n(), year = 2010)%>%
+as.data.frame()
+
+joined_14_prov<-joined1%>%
+group_by(provcd_2014)%>%
+summarise(mean_income = mean(income_2014),
+m = sum(gender_14==1), f = sum(gender_14==0),
+r = sum(gender_14==1)/sum(gender_14==0),
+count=n(), year = 2014)%>%
+as.data.frame()
+
+colnames(joined_10_prov)[1]<-'provcd'
+colnames(joined_14_prov)[1]<-'provcd'
+merged<-left_join(joined_10_prov, joined_14_prov, by='provcd')
+merged$diffincome<-merged$mean_income.y-merged$mean_income.x
+
+joined_10_prov2<-left_join(joined_10_prov, gdp10, by='provcd')
+joined_14_prov2<-left_join(joined_14_prov, gdp, by='provcd')
+joined_14_prov2$mean_income<-as.numeric(joined_14_prov2$mean_income)
+joined_10_prov2$provcd<-as.character(joined_10_prov2$provcd)
+joined_14_prov2$provcd<-as.character(joined_14_prov2$provcd)
+
+### Urban / Rural
+joined_10_rural<-joined1%>%
+group_by(provcd_2010, urban_2010)%>%
+summarise(mean_income = mean(income_2010),
+m = sum(gender_10==1), f = sum(gender_10==0),
+r = sum(gender_10==1)/sum(gender_10==0),
+count=n(), year = 2010)%>%
+as.data.frame()
+
+joined_14_rural<-joined1%>%
+group_by(provcd_2014, urban_2014)%>%
+summarise(mean_income = mean(income_2014),
+m = sum(gender_14==1), f = sum(gender_14==0),
+r = sum(gender_14==1)/sum(gender_14==0),
+count=n(), year = 2014)%>%
+as.data.frame()
+
+colnames(joined_10_rural)[1]<-'provcd'
+colnames(joined_14_rural)[1]<-'provcd'
+colnames(joined_10_rural)[2]<-'urban'
+colnames(joined_14_rural)[2]<-'urban'
+
+merged_rural<-inner_join(joined_10_rural, joined_14_rural, by=c('provcd','urban'))
+merged_rural$diffincome<-merged_rural$mean_income.y-merged_rural$mean_income.x
+merged_rural
+```
+
+Input {.sidebar}
+---------------------------------------------------
+
+```{r 3, echo=FALSE}
+selectizeInput('year', label = "Select Year",
+            choices = c(2010,2014), selected = 2010)
+selectizeInput('province', label = "Select Province",
+          choices = c("All", sort((unique(joined_10_prov2$provcd)))),
+            selected = "All")
+```
+
+Row {data-width=800}
+--------------------------------------------------
+
+### Graph
+
+```{r 4, echo=FALSE}
+plot_province<-function(data){
+  ggplot(data = data,
+             aes(x = mean_income, y = GDP, 
+               fill = provcd))+ 
+  geom_point(aes(size = count), shape = 21, alpha = 0.7)+
+  labs(size = 'Province ID')+
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Mean of Income", 
+                     limits = c(0, 40000)) +
+  scale_y_continuous(name = "GDP",
+                     limits = c(0, 7000000)) +
+  guides(fill=guide_legend(title='Province ID'))+
+  theme(legend.position = "bottom", 
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())}
+
+plot_province_city<- function(data){
+  ggplot(data =data,
+             aes(x = mean_income, y = GDP, 
+               fill = provcd))+ 
+  geom_point(aes(size = count), shape = 21, alpha = 0)+
+  geom_point(data = filter(data, 
+                           provcd %in% input$province), 
+             aes(size = count, fill='blank'), shape = 21) +
+  labs(size = 'Province ID')+
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Mean of Income",
+                     limits = c(0, 40000)) +
+  scale_y_continuous(name = "GDP",
+                     limits = c(0, 7000000)) +
+  guides(fill=guide_legend(title='Province ID'))+
+  theme(legend.position = "bottom", 
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())}
+
+plot_urban<-function(data) {
+  ggplot(data = data,
+             aes(x = mean_income, y = GDP, fill = urban, label = provcd))+
+  geom_point(aes(size = count), shape = 21, alpha = 0.7)+
+  labs(size = 'Rural/Urban')+
+  geom_hline(yintercept = 1, color = "blue", linetype = 2, size = 0.5) +
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Difference in Mean of Incomes between 2014 and 2010",
+                     limits = c(-300, -20)) +
+  scale_y_continuous(name = "GDP") +
+  theme(panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  scale_fill_manual(values=c("#1EBA28","#F1A1D5"))}
+
+plot_urban_city<- function(data){
+  ggplot(data = data,
+             aes(x = mean_income, y = GDP, 
+               fill = urban, label = provcd))+ 
+  geom_point(aes(size = count), shape = 21, alpha = 0)+
+  geom_point(data = filter(data, 
+                           provcd %in% input$province), 
+             aes(size = count.y, fill=urban), shape = 21) +
+  labs(size = 'Rural/Urban')+
+  geom_hline(yintercept = 1, color = "blue", linetype = 2, size = 0.5) +
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Difference in Mean of Incomes between 2014 and 2010",
+                     limits = c(-300, -20)) +
+  scale_y_continuous(name = "GDP") +
+  guides(fill=guide_legend(title='Province ID'))+
+  theme(legend.position = "bottom", 
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  scale_fill_manual(values=c("#1EBA28","#F1A1D5","black"))}
+```
+```{r 5, echo=FALSE}
+renderPlotly(
+    if(input$year == 2010){
+    if(input$province=='All') {
+  pp<-plot_province(joined_10_prov2)}
+    else{
+      pp<-plot_province_city(joined_10_prov2)
+    }
+    }
+    else{
+      if(input$province=='All') {
+    pp<-plot_province(joined_14_prov2)}
+    else{
+      pp<-plot_province_city(joined_14_prov2)
+    }
+    })
+```
+
+Difference in Mean of Income between 2014 and 2010 with China Map
+=======================================================================
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# I referenced the R visual. - China Map Part I
+# (http://papacochon.com/2015/10/10/Codage-10-r-visualization-1-cn-map-1/) 
+# and used the dataset from ggplot2-china-map Github 
+# (https://github.com/xiaohk/ggplot2-china-map)
+
+# Read the shape file of China
+cnmap <- readShapePoly("../ggplot2-china-map/china_shapefile/bou2_4p.shp")
+cn_prov_name <- na.omit(unique(cnmap$NAME))
+en_prov_name <- c("Heilongjiang", "Inner Mongolia", "Xinjiang", "Jilin",
+                  "Liaoning", "Gansu", "Hebei", "Beijing", "Shanxi",
+                  "Tianjin", "Shaanxi", "Ningxia", "Qinghai", "Shandong",
+                  "Tibet", "Henan", "Jiangsu", "Anhui", "Sichuan", "Hubei",
+                  "Chongqing", "Shanghai", "Zhejiang", "Hunan", "Jiangxi",
+                  "Yunan", "Guizhou", "Fujian", "Guangxi", "Taiwan", 
+                  "Guangdong", "Hong Kong", "Hainan")
+prov_name <- data.frame(cn_prov_name, en_prov_name)
+colnames(prov_name)<-c('NAME','provcd')
+
+# First read in the shapefile
+china = readOGR(dsn=("../fp-nxu-achung/ggplot2-china-map/china_shapefile/"), layer="bou2_4p")
+# Read in additional datafile to merge in 
+merged = read.csv('../fp-nxu-achung/merged.csv')
+# Clean data set and join into one dataframe
+china@data$id = rownames(china@data)
+china.points = fortify(china, region="id")
+china.df = join(china.points, china@data, by="id")
+# Filter out extra areas that are not needed
+china.df = subset(china.df, AREA > 0.005)
+# Make into one dataframe that contains the identifiable China region names
+china.all.df<-left_join(china.df, prov_name, by = 'NAME')
+# Merge into one dataframe that contains the interested variables
+ch<-left_join(china.all.df, merged, by = 'provcd')
+#ch$abs<-abs(ch$diffincome)
+#ch$provcd <- tolower(ch$provcd)
+#china.all.df$provcd<-tolower(china.all.df$provcd)
+```
+```{r, eval=FALSE, include=FALSE}
+p2<-ggplot(china.all.df, aes(x=long, y=lat, map_id = provcd))+
+        geom_polygon(aes(fill=ch$diffincome, group = provcd), ) +
+        scale_fill_gradient(low="white", high="red", name="Difference of mean income\n")+
+        geom_path(color="gray", size=0.3) +
+        coord_fixed(ratio = 1)+
+        expand_limits(x = china.all.df$long, y = china.all.df$lat) +
+        theme(axis.line=element_blank(),
+              axis.text.x=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks=element_blank(),
+              axis.title.x=element_blank(),
+              axis.title.y=element_blank(),
+              panel.background=element_blank(),
+              panel.border=element_blank(),
+              panel.grid.major=element_blank(),
+              panel.grid.minor=element_blank(),
+              plot.background=element_blank())
+```
+
+
+Row {data-width=800}
+--------------------------------------------------
+
+### China Map
+```{r, echo=FALSE, fig.height= 8, fig.width=12}
+renderPlotly(p2<-ggplot(china.all.df, aes(x=long, y=lat, map_id = provcd))+
+        geom_polygon(aes(fill=ch$diffincome )) +
+        scale_fill_gradient(low="white", high="red", name="Difference of Mean Income \n between 2014 and 2010")+
+        geom_path(color="black", size=0.3) +
+        coord_fixed(ratio = 1)+
+        expand_limits(x = china.all.df$long, y = china.all.df$lat) +
+        labs(caption ='Note: The region colored in grey is the area that does not have record in data.')+
+        theme(axis.line=element_blank(),
+              axis.text.x=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks=element_blank(),
+              axis.title.x=element_blank(),
+              axis.title.y=element_blank(),
+              panel.background=element_blank(),
+              panel.border=element_blank(),
+              panel.grid.major=element_blank(),
+              panel.grid.minor=element_blank(),
+              plot.background=element_blank()))
+```
+
