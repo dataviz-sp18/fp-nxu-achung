@@ -2,7 +2,11 @@
 title: "FP"
 author: "Alice Mee Seon Chung"
 date: "5/24/2018"
-output: html_document
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: rows
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -12,14 +16,271 @@ library(readstata13)
 library(stargazer)
 library(lmtest)
 library(coefplot)
-setwd("~/Desktop/2018SPRING/DV/FP")
-df2010<-read.dta13('CFPS/data_2010.dta')
-df2014<-read.dta13('CFPS/data_2014.dta')
-lm1<-lm(income~.-pid-fid-cid-provcd-countyid-hukou-inc_lastyr-highest_educ_degree_2010-educ2010-stage_educ2010
+library(tidyverse)
+library(knitr)
+library(broom)
+library(stringr)
+library(modelr)
+library(forcats)
+library(tidytext)
+library(wordcloud)
+library(scales)
+library(tm)
+library(SnowballC)
+library(RColorBrewer)
+library(ggmap)
+library(reshape2)
+library(maps)
+library(gtools)
+library(plyr)
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library(shiny)
+library(flexdashboard)
+packageVersion('plotly')
+set.seed(1)
+options(digits = 3)
+set.seed(1234)
+theme_set(theme_minimal())
+setwd("~/Desktop/2018SPRING/DV/fp-nxu-achung/")
+
+df2010<-read.dta13('data/data_2010.dta',
+                   missing.type = T,
+                   nonint.factors = T,
+                   generate.factors = T) %>%
+  mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+  mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+  mutate_each(funs(replace(., . == "Unknown", NA))) 
+
+df2014<-read.dta13('data/data_2014.dta',
+                   missing.type = T,
+                   nonint.factors = T,
+                   generate.factors = T) %>%
+  mutate_each(funs(replace(., . == "Not applicable", NA))) %>%
+  mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
+  mutate_each(funs(replace(., . == "Unknown", NA)))
+```
+```{r, echo=FALSE}
+joined <- df2010 %>%
+  inner_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
+
+joined <- joined %>% 
+  mutate(income_diff = income_2014 - income_2010)%>%
+  mutate(provcd_2010=as.character(joined$provcd_2010),
+         provcd_2014=as.character(joined$provcd_2014))%>%
+  mutate(provcd_2010=replace(as.character(joined$provcd_2010), 
+                     joined$provcd_2010 == "Guangxi Zhuang Autonomous Region",
+                     "Guangxi"),
+         provcd_2014=replace(as.character(joined$provcd_2014), 
+                     joined$provcd_2014 == "Guangxi Zhuang Autonomous Region",
+                     "Guangxi"),
+          provcd_2014=replace(as.character(joined$provcd_2014), 
+                     joined$provcd_2014 =="Xinjiang Uygur Autonomous Region",
+                     "Xinjiang"))
+
+joined1<-joined%>%
+  filter(!is.na(joined$income_2014)&!is.na(joined$income_2010)
+                &!is.na(joined$provcd_2010)&!is.na(joined$provcd_2014)
+                &!is.na(joined$urban_2010)&!is.na(joined$urban_2014))%>%
+  mutate(gender_10 = case_when(gender_2010 =="Male" ~ 1,
+                        gender_2010 == "Female_(0)"  ~ 0,
+                        gender_2010 =="Female_(5)" ~ 0,
+                        TRUE ~ 5), gender_14=case_when(gender_2014 =="Male" ~ 1,
+                        gender_2014 == "Female_(0)"  ~ 0,
+                        gender_2014 =="Female_(5)" ~ 0,
+                        TRUE ~ 5))%>%
+  mutate(income_2010=as.numeric(income_2010), income_2014=as.numeric(income_2014),
+         gender_2010=as.numeric(gender_2010), gender_2014=as.numeric(gender_2014))
+
+joined_10_prov<-joined1%>%
+  group_by(provcd_2010)%>%
+  summarise(mean_income = mean(income_2010),
+            m = sum(gender_10==1), f = sum(gender_10==0),
+            r = sum(gender_10==1)/sum(gender_10==0),
+            count=n(), year = 2010)%>%
+  as.data.frame()
+
+joined_14_prov<-joined1%>%
+  group_by(provcd_2014)%>%
+  summarise(mean_income = mean(income_2014), 
+            m = sum(gender_14==1), f = sum(gender_14==0),
+            r = sum(gender_14==1)/sum(gender_14==0),
+            count=n(), year = 2014)%>%
+  as.data.frame()
+colnames(joined_10_prov)[1]<-'provcd'
+colnames(joined_14_prov)[1]<-'provcd'
+merged<-left_join(joined_10_prov, joined_14_prov, by='provcd')
+merged$diffincome<-merged$mean_income.y-merged$mean_income.x
+
+joined_10_rural<-joined1%>%
+  group_by(provcd_2010, urban_2010)%>%
+  summarise(mean_income = mean(income_2010), 
+            m = sum(gender_10==1), f = sum(gender_10==0),
+            r = sum(gender_10==1)/sum(gender_10==0),
+            count=n(), year = 2010)%>%
+  as.data.frame()
+
+joined_14_rural<-joined1%>%
+  group_by(provcd_2014, urban_2014)%>%
+  summarise(mean_income = mean(income_2014), 
+            m = sum(gender_14==1), f = sum(gender_14==0),
+            r = sum(gender_14==1)/sum(gender_14==0),
+            count=n(), year = 2014)%>%
+  as.data.frame()
+colnames(joined_10_rural)[1]<-'provcd'
+colnames(joined_14_rural)[1]<-'provcd'
+colnames(joined_10_rural)[2]<-'urban'
+colnames(joined_14_rural)[2]<-'urban'
+merged_rural<-inner_join(joined_10_rural, joined_14_rural, by=c('provcd','urban'))
+merged_rural$diffincome<-merged_rural$mean_income.y-merged_rural$mean_income.x
+```
+
+Input {.sidebar}
+---------------------------------------------------
+```{r, echo=FALSE}
+selectizeInput('type', label = "Select Catetory",
+            choices = c("By Province","By Rural/Urban"), selected = "By Province")
+#selectizeInput('year', label = "Select Year",
+#            choices = unique(mer$year), selected = 2010)
+selectizeInput('province', label = "Select Province",
+            choices = c("All", sort(as.character(unique(merged$provcd)))),
+            selected = "All")
+```
+```{r, include=FALSE, eval=FALSE}
+ggplot(data = merged, aes(x = diffincome, y = r.y, 
+               fill = provcd))+ 
+  geom_point(aes(size = count.y), shape = 21, alpha = 0.7)+
+  labs(size = 'Province ID')+
+  geom_hline(yintercept = 1, color = "blue", linetype = 2, size = 0.5) +
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Difference between Mean of Incomes of 2014 and 2010")+#, limits = c(0, 40000)) +
+  scale_y_continuous(name = "Gender Ratio (Male/Female)(%)")+#, limits = c(0.8, 1.2)) +
+  guides(fill=guide_legend(title='Province ID'))+
+  theme(legend.position = "bottom", 
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+```
+
+```{r, echo=FALSE}
+plot_province<-function(data){
+  ggplot(data = data,
+             aes(x = diffincome, y = r.y, 
+               fill = provcd))+ 
+  geom_point(aes(size = count.y), shape = 21, alpha = 0.7)+
+  labs(size = 'Province ID')+
+  geom_hline(yintercept = 1, color = "blue", linetype = 2, size = 0.5) +
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Difference between Mean of Incomes of 2014 and 2010",
+                     limits = c(-300,-20)) +
+  scale_y_continuous(name = "Gender Ratio (Male/Female)(%)", limits = c(0.5, 2)) +
+  guides(fill=guide_legend(title='Province ID'))+
+  theme(legend.position = "bottom", 
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())}
+
+plot_province_city<- function(data){
+  ggplot(data =data,
+             aes(x = diffincome, y = r.y, 
+               fill = provcd))+ 
+  geom_point(aes(size = count.y), shape = 21, alpha = 0)+
+  geom_point(data = filter(data, 
+                           provcd %in% input$province), 
+             aes(size = count.x, fill='blank'), shape = 21) +
+  labs(size = 'Province ID')+
+  geom_hline(yintercept = 1, color = "blue", linetype = 2, size = 0.5) +
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Difference between Mean of Incomes of 2014 and 2010",
+                     limits = c(-300, -20)) +
+  scale_y_continuous(name = "Gender Ratio (Male/Female)(%)", limits = c(0.5, 2)) +
+  guides(fill=guide_legend(title='Province ID'))+
+  theme(legend.position = "bottom", 
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())}
+
+
+plot_urban<-function(data) {
+  ggplot(data = data,
+             aes(x = diffincome, y = r.y,
+                 fill = urban, label = provcd))+
+  geom_point(aes(size = count.y), shape = 21, alpha = 0.7)+
+  labs(size = 'Rural/Urban')+
+  geom_hline(yintercept = 1, color = "blue", linetype = 2, size = 0.5) +
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Difference between Mean of Incomes of 2014 and 2010",
+                     limits = c(-300, -20)) +
+  scale_y_continuous(name = "Gender Ratio (Male/Female)(%)", limits = c(0.5, 2)) +
+  theme(panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  scale_fill_manual(values=c("#1EBA28","#F1A1D5"))}
+
+
+plot_urban_city<- function(data){
+  ggplot(data = data,
+             aes(x = diffincome, y = r.y, 
+               fill = urban, label = provcd))+ 
+  geom_point(aes(size = count.y), shape = 21, alpha = 0)+
+  geom_point(data = filter(data, 
+                           provcd %in% input$province), 
+             aes(size = count.y, fill=urban), shape = 21) +
+  labs(size = 'Rural/Urban')+
+  geom_hline(yintercept = 1, color = "blue", linetype = 2, size = 0.5) +
+  scale_size_continuous(range = c(1,8.5)) +
+  scale_x_continuous(name = "Difference between Mean of Incomes of 2014 and 2010",
+                     limits = c(-300, -20)) +
+  scale_y_continuous(name = "Gender Ratio (Male/Female)(%)", limits = c(0.5, 2)) +
+  guides(fill=guide_legend(title='Province ID'))+
+  theme(legend.position = "bottom", 
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  scale_fill_manual(values=c("#1EBA28","#F1A1D5","black"))}
+```
+
+Row {data-width=800}
+--------------------------------------------------
+
+```{r 1, echo=FALSE}
+renderPlotly(
+  if (input$type == 'By Province'){
+    if(input$province=='All') {
+  pp<-plot_province(merged)}
+    else{
+      pp<-plot_province_city(merged)
+    }
+  }
+else{
+  if(input$province=='All') {
+  pp1<-plot_urban(merged_rural)}
+    else{
+      pp1<-plot_urban_city(merged_rural)
+}})
+```
+
+
+```{r, eval=FALSE, include=FALSE}
+lm1<-lm(income~.-pid-fid-cid-provcd-countyid-hukou-inc_lastyr-stage_educ
         ,data=df2010)
+
 summary(lm1)
-ss
+
+lm2<-lm(income~.-pid-fid-fid12-fid10-cid-provcd-countyid-stage_educ-te4
+        ,data=df2014)
+
+summary(lm2)
 stargazer(ss$coefficients, type = 'text')
 coefplot(lm1)
+coefplot(lm2)
+
 ```
+
 
