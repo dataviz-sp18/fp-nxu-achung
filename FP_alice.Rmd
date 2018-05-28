@@ -44,12 +44,13 @@ library(dplyr)
 packageVersion('plotly')
 set.seed(1)
 options(scipen=999)
+load("~/Desktop/2018SPRING/DV/fp-nxu-achung/data.RData")
 ```
 
 Mean of Income and GDP Gap by Year
 =======================================================================
 
-```{r 1, include=FALSE}
+```{r 1, include=FALSE, eval=FALSE}
 setwd("~/Desktop/2018SPRING/DV/fp-nxu-achung/")
 gdp<-read.csv('china_gdp_2014.csv')
 colnames(gdp)[1]<-'provcd'
@@ -71,7 +72,7 @@ df2014<-read.dta13('data/data_2014.dta',
   mutate_each(funs(replace(., . == "Not applicable_(-8)", NA))) %>%
   mutate_each(funs(replace(., . == "Unknown", NA)))
 ```
-```{r 2, include=FALSE}
+```{r 2, include=FALSE, eval=FALSE}
 joined <- df2010 %>%
 inner_join(df2014, by = "pid", suffix = c("_2010", "_2014"))
 
@@ -275,7 +276,7 @@ renderPlotly(
 Difference in Mean of Income with China Map
 =======================================================================
 
-```{r, echo=FALSE, include=FALSE}
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
 cnmap <- readShapePoly("../ggplot2-china-map/china_shapefile/bou2_4p.shp")
 cn_prov_name <- na.omit(unique(cnmap$NAME))
 en_prov_name <- c("Heilongjiang", "Inner Mongolia", "Xinjiang", "Jilin",
@@ -288,7 +289,6 @@ en_prov_name <- c("Heilongjiang", "Inner Mongolia", "Xinjiang", "Jilin",
 
 prov_name <- data.frame(cn_prov_name, en_prov_name)
 colnames(prov_name)<-c('NAME','provcd')
-
 # First read in the shapefile
 china = readOGR(dsn=("../fp-nxu-achung/ggplot2-china-map/china_shapefile/"), layer="bou2_4p")
 merged = read.csv('../fp-nxu-achung/merged.csv')
@@ -299,11 +299,8 @@ china.df = join(china.points, china@data, by="id")
 
 # Dont draw the islands in south china sea
 china.df = subset(china.df, AREA > 0.005)
-
 china.all.df<-left_join(china.df, prov_name, by = 'NAME')
-
 ch<-left_join(china.all.df, merged, by = 'provcd')
-
 ch$abs<-abs(ch$diffincome)
 ch$provcd <- tolower(ch$provcd)
 china.all.df$provcd<-tolower(china.all.df$provcd)
