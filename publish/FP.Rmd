@@ -1,6 +1,5 @@
 ---
 title: "Final Project"
-author: "Alice Mee Seon Chung, Ningyin Xu"
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: scroll
@@ -30,9 +29,11 @@ load("data.RData")
 Introduction
 =====================================  
 
-Since China has been one of key players of world economy, many studies have been conducted on the economic development and income level of China. The income level of people directly related with the economic power so it is important to know the prediction on how this income level will change in the future at various level like local, community, family and individual. In this project, our goal is to study what factors impact on the level of individual income in China. It is commonly believed that the socioeconomic backgrounds and characterestisc of residential community have large impact on the income level of individual. To extent the existed findings, we proposed the research question on what factors impact on the income level of individuals and how these factors related with the income level of individuals in China. 
+Since China has been one of key players of world economy, many studies have been conducted on the economic development and income level of China. The income level of people directly related with the economic power so it is important to know the prediction on how this income level will change in the future at various level like local, community, family and individual. In this project, our goal is to study what factors affect the level of individual income in China. It is commonly believed that the socioeconomic backgrounds and characterestisc of residential community have large impact on the income level of individual. To extent the existed findings, we proposed the research question on what factors impact personal income and how they impact. 
 
-Our main data source is China Family Panel Studies (CFPS) which is the first large-scale academically oriented longitudinal survey data in China, and the data is from 2010 to 2014 with 2-year intervals. This data is based on the survey with questions about Chinese family and society. This dataset has 33,018 observations with 1,484 variables in 2010 and 37,147 observations with 1,191 variables in 2014. After cleaning the missing variables and selecting the interested variables and merging two data by personal id, we finally have sample data which has 12,237 observations with 202 variables. We focus on the important variables associated with individual level such as personal income, age, gender, years of education and other variables related with community characteristics such as the number of convenience stores, the number of promary schools, the number of hospitals, water source, community population, travel time to nearest town, travel time to county seat, agricultural GDP, non-agricultural GDP and income per capita. Using these variables, we can measure the income level of individuals by each province and further conduct the relationship between the charatertistics of individuals and the income level as well as between the characteristics of residential community and the income level of individuals. 
+Our main data source is China Family Panel Studies (CFPS), the first large-scale academically oriented longitudinal survey data in China. We used data for 2 periods, with 33,018 observations in 2010 and 37,147 observations in 2014. After cleaning the missing variables, selecting the interested variables and merging two data by personal id, we ended up with 12,237 observations and 202 variables. We focused on the important variables associated with personal income: age, gender, years of education and other variables on community characteristics: the number of convenience stores, the number of promary schools, the number of hospitals, water source, community population, travel time to nearest town, travel time to county seat, agricultural GDP, non-agricultural GDP and income per capita.
+
+Using these variables, we can measure personal income by each province and further inspect the relationship of it with individual and community characteristics.
 
 Income vs. GDP
 =====================================  
