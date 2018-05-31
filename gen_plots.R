@@ -9,6 +9,7 @@ library(reshape2)
 library(readstata13)
 library(stargazer)
 library(gtools)
+library(SparseM)
 
 options(digits = 3)
 set.seed(1234)
@@ -321,7 +322,7 @@ plots_df[["inc"]][["number of convenience stores"]] <- joined %>%
           sep = "_") %>%
   mutate(time = as.factor(time)) %>%
   ggplot(aes(x = numconvenience, y=income, color = time)) +
-  geom_quantile(quantiles = c(0.25, 0.5, 0.75)) +
+  geom_quantile(method = "rqss",quantiles = c(0.25, 0.5, 0.75)) +
   labs(title = "Personal Income vs. Number of Convenience Stores in Communities",
        x = "Number of Convenience Stores",
        y = "Personal Income",
@@ -496,7 +497,7 @@ plots_df[["inc"]][["community population"]] <- joined %>%
   summarise(mean_inc = mean(income, na.rm = T),
             mean_pop = mean(pop, na.rm=T)) %>%
   ggplot(aes(x = mean_pop, y=mean_inc, color = time)) +
-  geom_quantile() + geom_point(alpha = 0.1) +
+  geom_quantile(method = "rqss",) + geom_point(alpha = 0.1) +
   labs(title = "Personal Income vs. Population in Communities",
        x = "Population",
        y = "Personal Income",
@@ -670,7 +671,7 @@ plots_df[["inc"]][["non-agricultural GDP"]] <- joined %>%
   summarise(mean_inc = mean(income, na.rm = T),
             mean_agrgdp = mean(nonagrigdp, na.rm=T)) %>%
   ggplot(aes(x = mean_agrgdp, y=mean_inc, color = time)) +
-  geom_quantile() +
+  geom_quantile(method = "rqss",) +
   labs(title = "Personal Income vs. Non-Agricultural GDP in Communities",
        x = "Non-Agricultural GDP",
        y = "Personal Income",
