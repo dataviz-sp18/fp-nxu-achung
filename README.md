@@ -1,10 +1,10 @@
 
 ## Project Description
-In this project, our goal is to study **what factors affect the level of individual income in China**. It is commonly believed that the socioeconomic backgrounds and characteristics of residential community have large impact on the income level of individual. To extent the existed findings, we proposed the research question on what factors impact personal income and how they impact. Our main data source is China Family Panel Studies (CFPS) in 2010 and 2014.
+In this project, our goal is to study **what factors affect the level of individual income in China**. It is commonly believed that the socioeconomic backgrounds and characteristics of residential community have large impact on the income level of individual. To extend existing findings, we proposed the research question on what factors impact personal income and how they impact. Our main data source is China Family Panel Studies (CFPS) in 2010 and 2014.
 
 ## About all directories and files
 
-`Visualization_grpahs_files/figure-gfm`	: All graphs files of `Visualization _graphs.md`
+`Visualization_grpahs_files/figure-gfm`	: All graphs files of `Visualization_graphs.md`
 
 `data` :	Directory contains raw data files of CFPS
 
@@ -15,6 +15,9 @@ In this project, our goal is to study **what factors affect the level of individ
 `Visualization_grpahs.Rmd` : Data visualization R codes for the final paper
 
 `Visualization_grpahs.md` : Data visualization gitghub document with all graphs 
+
+`Final_Report_with_Viz.Rmd/.pdf` : Final paper with visualization graphs 
+(We don't recommend using this file since the formatting with many graphs are not ideal. Please refer to `Final_Report.pdf` and `Visualization_graphs.md`.)
 
 `data.RData` : RData files that contains all the data to run the `Visualization_grpahs.Rmd`
 
