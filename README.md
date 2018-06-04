@@ -17,9 +17,9 @@ In this project, our goal is to study **what factors affect the level of individ
 `Visualization_grpahs.md` : Data visualization gitghub document with all graphs 
 
 `Final_Report_with_Viz.Rmd/.pdf` : Final paper with visualization graphs 
-(We don't recommend using this file since the formatting with many graphs are not ideal. Please refer to `Final_Report.pdf` and `Visualization_graphs.md`.)
+(We don't recommend using this file since the formatting with many graphs is not ideal. Please refer to `Final_Report.pdf` and `Visualization_graphs.md`.)
 
-`data.RData` : RData files that contains all the data to run the `Visualization_grpahs.Rmd`
+`data.RData` : RData file that contains all the data to run the `Visualization_grpahs.Rmd`
 
 ## Instruction 
 ### 1. Clone the Repository
