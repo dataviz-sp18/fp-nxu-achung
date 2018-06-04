@@ -4,7 +4,9 @@ In this project, our goal is to study **what factors affect the level of individ
 
 ## About all directories and files
 
-`Visualization_grpahs_files/figure-gfm`	: All graphs files of `Visualization_graphs.md`
+`Final_Report_with_Viz_files/figure-latex` : All graph files of `Final_Report_with_Viz.pdf`
+
+`Visualization_grpahs_files/figure-gfm`	: All graph files of `Visualization_graphs.md`
 
 `data` :	Directory contains raw data files of CFPS
 
@@ -12,12 +14,12 @@ In this project, our goal is to study **what factors affect the level of individ
 
 `Final_Report.pdf` :	Final paper for exlaining project
 
+`Final_Report_with_Viz.Rmd/.pdf` : Final paper with visualization graphs 
+(We don't recommend using this file since the formatting with many graphs is not ideal. Please refer to `Final_Report.pdf` and `Visualization_graphs.md`.)
+
 `Visualization_grpahs.Rmd` : Data visualization R codes for the final paper
 
 `Visualization_grpahs.md` : Data visualization gitghub document with all graphs 
-
-`Final_Report_with_Viz.Rmd/.pdf` : Final paper with visualization graphs 
-(We don't recommend using this file since the formatting with many graphs is not ideal. Please refer to `Final_Report.pdf` and `Visualization_graphs.md`.)
 
 `data.RData` : RData file that contains all the data to run the `Visualization_grpahs.Rmd`
 
